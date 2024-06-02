@@ -1,0 +1,24 @@
+﻿@page "/"
+
+@inject BookContext CtxBook
+@inject AuthorContext CtxAuthor
+
+<PageTitle>Index</PageTitle>
+
+<Card Title="Welcome">
+    <MudText>We have @numBooks @(numBooks == 1 ? "book" : "books") and @numAuthors @(numAuthors == 1 ? "author" : "authors").</MudText>
+    <MudLink Href="/createbook">Add a book here!</MudLink>
+</Card>
+
+@code {
+    private int numBooks;
+    private int numAuthors;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        numBooks = CtxBook.GetCollectionSize();
+        numAuthors = CtxAuthor.GetCollectionSize();
+    }
+}

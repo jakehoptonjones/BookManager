@@ -1,0 +1,36 @@
+﻿<Card Title="Add Review">
+    <MudGrid>
+        <MudItem xs="6">
+            <MudTextField @bind-Value="@pendingReview.Author" Label="Author" Immediate />
+        </MudItem>
+        <MudItem xs="6">
+            <MudStack Justify="Justify.Center" AlignItems="AlignItems.Center" Class="pt-4">
+                <MudRating @bind-SelectedValue="pendingReview.Rating" />
+            </MudStack>
+        </MudItem>
+    </MudGrid>
+    <MudTextField @bind-Value="@pendingReview.Text" Label="Details" Counter="250" MaxLength="250" Immediate AutoGrow />
+    <MudButton Variant="Variant.Filled" DisableElevation="true" Color="Color.Primary" Size="Size.Medium" OnClick="AddClicked" Disabled="@ConditionsUnmet">Add</MudButton>
+</Card>
+
+@code {
+    [Parameter]
+    public Action<Review> AddReview { get; set; }
+
+    private Review pendingReview;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        pendingReview = new Review();
+    }
+
+    private void AddClicked()
+    {
+        AddReview.Invoke(pendingReview);
+        pendingReview = new Review();
+    }
+
+    private bool ConditionsUnmet => string.IsNullOrEmpty(pendingReview.Author) || string.IsNullOrEmpty(pendingReview.Text);
+}

@@ -1,0 +1,53 @@
+﻿@page "/viewauthor/{Id}"
+
+@inject AuthorContext CtxAuthor
+@inject BookContext CtxBook
+
+<Card Title="@($"Books by {author.Name()}")">
+    <MudTable Items="@books" Hover="true" RowStyle="cursor: pointer;" Elevation="0" OnRowClick="(e) => Page.ViewBook(e.Item.Id)" T="Book">
+        <HeaderContent>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Book, object>(x => x.Title)">Title</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Book, object>(x => x.PageCount)">Pages</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Book, object>(x => x.DatePublished)">Published</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Book, object>(x => x.GetAverageRating())">Rating</MudTableSortLabel>
+            </MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Title</MudTd>
+            <MudTd>@context.PageCount</MudTd>
+            <MudTd>@context.DatePublished.ToShortDateString()</MudTd>
+            <MudTd>
+                <MudStack Row="true" AlignItems="AlignItems.Center">
+                    @context.GetAverageRating().ToString("N2")
+                    <MudRating ReadOnly="true" SelectedValue="@context.GetRoundAverageRating()" />
+                </MudStack>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+</Card>
+
+@code {
+    [CascadingParameter]
+    public PageComponent Page { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    private Author author;
+    private IEnumerable<Book> books;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        author = CtxAuthor.Get(Guid.Parse(Id));
+        books = CtxBook.GetBooksForAuthor(author.Id);
+    }
+}

@@ -1,0 +1,62 @@
+﻿@page "/createbook"
+
+@inject BookContext CtxBook
+
+<Card Title="Create Book">
+    <MudGrid>
+        <MudItem xs="12">
+            <MudTextField @bind-Value="@book.Title" Label="Title" Immediate />
+        </MudItem>
+        <MudItem xs="12">
+            <MudTextField @bind-Value="@book.Blurb" Label="Blurb" Counter="250" MaxLength="250" Immediate AutoGrow />
+        </MudItem>
+        <MudItem xs="6">
+            <MudNumericField @bind-Value="book.PageCount" Label="Page count" Variant="Variant.Text" Immediate HideSpinButtons="true" />
+        </MudItem>
+        <MudItem xs="6">
+            <MudDatePicker @bind-Date="datePublished" Label="Date published" IsDateDisabledFunc="@((DateTime dt) => dt > DateTime.UtcNow)" />
+        </MudItem>
+        <MudItem xs="12">
+            <SetAuthorComponent SetAuthor="SetAuthor" />
+        </MudItem>
+        <MudItem xs="12" Class="d-flex justify-center">
+            <MudButton Variant="Variant.Filled" DisableElevation="true" Color="Color.Primary" Size="Size.Large" Class="mt-8" OnClick="OnAddClicked" Disabled="@ConditionsUnmet">Create</MudButton>
+        </MudItem>
+    </MudGrid>
+</Card>
+
+ @code {
+    [CascadingParameter]
+    public PageComponent Page { get; set; }
+
+    private Book book;
+    private DateTime? datePublished;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        book = new Book();
+        datePublished = DateTime.UtcNow;
+    }
+
+    private void OnAddClicked()
+    {
+        book.DatePublished = DateTime.Parse(datePublished.ToString());
+        CtxBook.Add(book);
+        Page.View("/viewallbooks");
+    }
+
+    private void SetAuthor(Author author)
+    {
+        book.Author = new ModelReference()
+        {
+            Id = author.Id,
+            Name = author.Name()
+        };
+
+        StateHasChanged();
+    }
+
+    private bool ConditionsUnmet => string.IsNullOrEmpty(book.Title) || string.IsNullOrEmpty(book.Blurb) || book.PageCount == 0 || book.Author == null;
+}

@@ -1,0 +1,45 @@
+﻿@page "/viewallauthors"
+
+@inject AuthorContext CtxAuthor
+@inject BookContext CtxBook
+
+<PageTitle>Authors</PageTitle>
+
+@if (authors.Any())
+{
+    <MudTable Items="@authors" Hover="true" RowStyle="cursor: pointer;" OnRowClick="(e) => Page.ViewAuthor(e.Item.Id)" T="Author">
+        <HeaderContent>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Author, object>(x => x.Name())">Name</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Author, object>(x => booksForAuthor[x.Id].Count())">Books Published</MudTableSortLabel>
+            </MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Name()</MudTd>
+            <MudTd>@booksForAuthor[context.Id].Count()</MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+else
+{
+    <MudText>No authors added</MudText>
+}
+
+@code {
+    [CascadingParameter]
+    public PageComponent Page { get; set; }
+
+    private IEnumerable<Author> authors;
+    private Dictionary<Guid, IEnumerable<Book>> booksForAuthor;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        authors = CtxAuthor.GetAll();
+        var books = CtxBook.GetAll();
+        booksForAuthor = authors.ToDictionary(x => x.Id, x => books.Where(b => Equals(x.Id, b.Author.Id)));
+    }
+}

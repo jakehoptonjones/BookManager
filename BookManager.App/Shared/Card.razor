@@ -1,0 +1,12 @@
+﻿<MudPaper Class="px-8 py-4 mb-8">
+    <CardSectionDivider Title="@Title" />
+    @ChildContent
+</MudPaper>
+
+@code {
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+}

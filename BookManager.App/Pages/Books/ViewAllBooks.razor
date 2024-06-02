@@ -1,0 +1,63 @@
+﻿@page "/viewallbooks"
+
+@inject BookContext CtxBook
+
+<PageTitle>Books</PageTitle>
+
+<MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+    <MudText Typo="Typo.h6">Books</MudText>
+    <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => Page.View("/createbook"))" />
+</MudStack>
+
+@if (books.Any())
+{
+    <MudTable Items="@books" Hover="true" RowStyle="cursor: pointer;" OnRowClick="(e) => Page.ViewBook(e.Item.Id)" T="Book">
+        <HeaderContent>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Book, object>(x => x.Title)">Title</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Book, object>(x => x.Author.Name)">Author</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Book, object>(x => x.PageCount)">Pages</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Book, object>(x => x.DatePublished)">Published</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Book, object>(x => x.GetAverageRating())">Rating</MudTableSortLabel>
+            </MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Title</MudTd>
+            <MudTd>@context.Author.Name</MudTd>
+            <MudTd>@context.PageCount</MudTd>
+            <MudTd>@context.DatePublished.ToShortDateString()</MudTd>
+            <MudTd>
+                <MudStack Row="true" AlignItems="AlignItems.Center">
+                    @context.GetAverageRating().ToString("N2")
+                    <MudRating ReadOnly="true" SelectedValue="@context.GetRoundAverageRating()" />
+                </MudStack>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+else
+{
+    <MudText>No books added</MudText>
+}
+
+@code {
+    [CascadingParameter]
+    public PageComponent Page { get; set; }
+
+    private IEnumerable<Book> books;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        books = CtxBook.GetAll();
+    }
+}

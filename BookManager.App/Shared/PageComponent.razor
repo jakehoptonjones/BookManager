@@ -1,0 +1,21 @@
+﻿@inject NavigationManager NavManager
+@inject ISnackbar Snackbar
+
+<CascadingValue Value="@this">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    private void ViewItem(string page, Guid id) => NavManager.NavigateTo($"view{page}/{id.ToString()}");
+
+    public void ViewAuthor  (Guid id) =>    ViewItem("author", id);
+    public void ViewBook    (Guid id) =>    ViewItem("book",   id);
+    public void ViewSeries(Guid id) =>      ViewItem("series", id);
+
+    public void View(string url) => NavManager.NavigateTo(url);
+
+    public void Popup(string message, Severity severity) => Snackbar.Add(message, severity);
+}

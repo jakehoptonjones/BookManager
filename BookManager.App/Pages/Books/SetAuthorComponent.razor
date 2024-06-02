@@ -1,0 +1,87 @@
+﻿@inject AuthorContext CtxAuthor
+
+<CardSectionDivider Title="Author" />
+
+@if (authors.Any())
+{
+    <MudAutocomplete T="Author" Label="Authors" Value="@selectedAuthor" ValueChanged="(x) => ChangeAuthor(x)" SearchFunc="@Search" Class="mb-2"
+                     AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" ToStringFunc="@(x => x == null ? string.Empty : $"{x.FirstName} {x.LastName}")" />
+}
+else
+{
+    <MudText Typo="Typo.body2" Align="Align.Center">No authors found.</MudText>
+}
+
+@if (expand)
+{
+    <MudText Typo="Typo.body2" Align="Align.Center" Class="pt-4">Add a new author below:</MudText>
+    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+        <MudTextField @bind-Value="@pendingAuthor.FirstName" Label="First name" Immediate />
+        <MudTextField @bind-Value="@pendingAuthor.LastName" Label="Last name" Immediate />
+        <MudButton Variant="Variant.Filled" DisableElevation="true" Color="Color.Primary" Size="Size.Medium" OnClick="OnAddClicked" Disabled="@ConditionsUnmet">Add</MudButton>
+    </MudStack>
+}
+else
+{
+    <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" OnClick="Expand">I can't find my author</MudButton>
+}
+
+@code {
+    [Parameter]
+    public Guid ExistingAuthorId { get; set; }
+
+    [Parameter]
+    public Action<Author> SetAuthor { get; set; }
+
+    private Author selectedAuthor;
+    private Author pendingAuthor;
+    private IEnumerable<Author> authors;
+
+    private bool expand = false;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        authors = CtxAuthor.GetAll();
+        pendingAuthor = new Author();
+
+        if (ExistingAuthorId != Guid.Empty)
+        {
+            selectedAuthor = authors.FirstOrDefault(x => Equals(x.Id, ExistingAuthorId));
+        }
+
+        StateHasChanged();
+    }
+
+    private void OnAddClicked()
+    {
+        CtxAuthor.Add(pendingAuthor);
+        ChangeAuthor(pendingAuthor);
+        pendingAuthor = new Author();
+        StateHasChanged();
+    }
+
+    private void ChangeAuthor(Author author)
+    {
+        selectedAuthor = author;
+        SetAuthor.Invoke(author);
+        StateHasChanged();
+    }
+
+    private void Expand()
+    {
+        expand = true;
+        StateHasChanged();
+    }
+
+    // MudBlazor requires an async task return type for autocomplete
+    private async Task<IEnumerable<Author>> Search(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return authors;
+
+        return authors.Where(x => x.FirstName.Contains(value, StringComparison.InvariantCultureIgnoreCase) || x.FirstName.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private bool ConditionsUnmet => string.IsNullOrEmpty(pendingAuthor.FirstName) || string.IsNullOrEmpty(pendingAuthor.LastName);
+}

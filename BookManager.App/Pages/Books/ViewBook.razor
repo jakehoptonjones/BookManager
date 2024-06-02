@@ -1,0 +1,108 @@
+﻿@page "/viewbook/{Id}"
+
+@inject BookContext CtxBook
+@inject AuthorContext CtxAuthor
+
+<Card Title="Book Info">
+    <MudGrid>
+        <MudItem xs="12">
+            <MudTextField @bind-Value="@book.Title" Label="Title" Immediate />
+        </MudItem>
+        <MudItem xs="12">
+            <MudTextField @bind-Value="@book.Blurb" Label="Blurb" Counter="250" MaxLength="250" Immediate AutoGrow />
+        </MudItem>
+        <MudItem xs="6">
+            <MudNumericField @bind-Value="book.PageCount" Label="Page count" Variant="Variant.Text" Min="0" Max="10" Immediate HideSpinButtons="true" />
+        </MudItem>
+        <MudItem xs="6">
+            <MudDatePicker @bind-Date="datePublished" Label="Date published" IsDateDisabledFunc="@((DateTime dt) => dt > DateTime.UtcNow)" />
+        </MudItem>
+        <MudItem xs="12">
+            <SetAuthorComponent ExistingAuthorId="@book.Author.Id" SetAuthor="SetAuthor" />
+        </MudItem>
+        <MudItem xs="12" Class="d-flex justify-center">
+            <MudButton Variant="Variant.Filled" DisableElevation="true" Color="Color.Primary" Size="Size.Large" Class="mt-8" OnClick="UpdateBook">Update</MudButton>
+        </MudItem>
+    </MudGrid>
+</Card>
+
+<AddRatingComponent AddReview="AddReview" />
+
+@if (book.Reviews.Any())
+{
+    <Card Title="Reviews">
+        @foreach (var review in book.Reviews)
+        {
+            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+                <MudText><strong>@review.Author</strong></MudText>
+                <MudRating ReadOnly="true" SelectedValue="@review.Rating" />
+            </MudStack>
+            <MudText>@review.Text</MudText>
+            <MudDivider Class="mt-2 mb-4" />
+        }
+    </Card>
+}
+
+<MudStack Row="true" Justify="Justify.Center" AlignItems="AlignItems.Center" Class="mb-4">
+    <MudFab Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete" OnClick="OnDeleteClicked" />
+</MudStack>
+
+@code {
+    [CascadingParameter]
+    public PageComponent Page { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    private Book book;
+    private DateTime? datePublished;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        book = CtxBook.Get(Guid.Parse(Id));
+        datePublished = book.DatePublished;
+    }
+
+    private void UpdateBook()
+    {
+        book.DatePublished = DateTime.Parse(datePublished.ToString());
+        CtxBook.Save(book);
+
+        Page.Popup("Saved!", Severity.Success);
+
+        StateHasChanged();
+    }
+
+    private void SetAuthor(Author author)
+    {
+        book.Author = new ModelReference()
+            {
+                Id = author.Id,
+                Name = $"{author.FirstName} {author.LastName}"
+            };
+    }
+
+    private void AddReview(Review review)
+    {
+        book.Reviews.Add(review);
+        UpdateBook();
+    }
+
+    private void OnDeleteClicked()
+    {
+        CtxBook.Delete(book);
+
+        // Check if author has any remaining books
+        var booksForAuthor = CtxBook.GetBooksForAuthor(book.Author.Id);
+
+        if (!booksForAuthor.Any())
+        {
+            var author = CtxAuthor.Get(book.Author.Id);
+            CtxAuthor.Delete(author);
+        }
+
+        Page.View("/viewallbooks");
+    }
+}
