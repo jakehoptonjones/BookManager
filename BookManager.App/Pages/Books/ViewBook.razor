@@ -1,5 +1,7 @@
 ﻿@page "/viewbook/{Id}"
 
+@using BookManager.App.Pages.Books.Components
+
 @inject BookContext CtxBook
 @inject AuthorContext CtxAuthor
 
@@ -55,6 +57,8 @@
     public string Id { get; set; }
 
     private Book book;
+
+    // MudBlazor requires a nullable DateTime for MudDatePicker
     private DateTime? datePublished;
 
     protected override void OnInitialized()
@@ -67,6 +71,7 @@
 
     private void UpdateBook()
     {
+        // Convert from DateTime? to DateTime
         book.DatePublished = DateTime.Parse(datePublished.ToString());
         CtxBook.Save(book);
 
@@ -93,15 +98,6 @@
     private void OnDeleteClicked()
     {
         CtxBook.Delete(book);
-
-        // Check if author has any remaining books
-        var booksForAuthor = CtxBook.GetBooksForAuthor(book.Author.Id);
-
-        if (!booksForAuthor.Any())
-        {
-            var author = CtxAuthor.Get(book.Author.Id);
-            CtxAuthor.Delete(author);
-        }
 
         Page.View("/viewallbooks");
     }

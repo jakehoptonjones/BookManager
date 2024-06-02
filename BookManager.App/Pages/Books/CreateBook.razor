@@ -1,5 +1,7 @@
 ﻿@page "/createbook"
 
+@using BookManager.App.Pages.Books.Components
+
 @inject BookContext CtxBook
 
 <Card Title="Create Book">
@@ -30,6 +32,8 @@
     public PageComponent Page { get; set; }
 
     private Book book;
+
+    // MudBlazor requires a nullable DateTime for MudDatePicker
     private DateTime? datePublished;
 
     protected override void OnInitialized()
@@ -42,8 +46,10 @@
 
     private void OnAddClicked()
     {
+        // Convert from DateTime? to DateTime
         book.DatePublished = DateTime.Parse(datePublished.ToString());
         CtxBook.Add(book);
+
         Page.View("/viewallbooks");
     }
 

@@ -11,6 +11,8 @@ builder.Services.AddMudServices();
 
 // Lifetime DB connection
 builder.Services.AddSingleton(new DbConnectionService("Filename=Data.db;Mode=Direct"));
+
+// Scoped contexts for each model
 builder.Services.AddScoped<BookContext>();
 builder.Services.AddScoped<AuthorContext>();
 
